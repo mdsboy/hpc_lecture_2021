@@ -1,8 +1,8 @@
 /*
  * on f_node
  * > module load intel-mpi gcc
- * > mpicxx example.cpp -march=native -O3
- * > mpirun -np 4 ./a.out
+ * > mpicxx example.cpp -march=native -O3 -fopenmp
+ * > mpirun -np 32 ./a.out
  */
 
 #include <mpi.h>
@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  const int N = 256;
+  const int N = 1024;
   vector<float> A(N*N);
   vector<float> B(N*N);
   vector<float> C(N*N, 0);
@@ -100,15 +100,16 @@ int main(int argc, char** argv) {
       }
     }
 
-
     auto toc = chrono::steady_clock::now();
     comp_time += chrono::duration<double>(toc - tic).count();
+
     MPI_Request request[2];
     MPI_Isend(&subB[0], N*N/size, MPI_FLOAT, send_to, 0, MPI_COMM_WORLD, &request[0]);
     MPI_Irecv(&recv[0], N*N/size, MPI_FLOAT, recv_from, 0, MPI_COMM_WORLD, &request[1]);
     MPI_Waitall(2, request, MPI_STATUS_IGNORE);
     for (int i=0; i<N*N/size; i++)
       subB[i] = recv[i];
+
     tic = chrono::steady_clock::now();
     comm_time += chrono::duration<double>(tic - toc).count();
   }
