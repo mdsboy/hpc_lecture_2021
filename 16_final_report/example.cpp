@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
     const int nr = min(n, 64);
     const int mr = min(m, 32);
 
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for
     for (int jc=0; jc<n; jc+=nc) {
       for (int pc=0; pc<k; pc+=kc) {
         float Bc[kc*nc];
